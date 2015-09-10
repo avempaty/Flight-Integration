@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<head>
+    <title>Micello Developer Example Custom Menu on PopUpClick</title>    
+    <meta  name="viewport"  content="initial-scale=1.0,  user-scalable=no"  />
+    <meta  charset="UTF-8">
+    <!-- Load micellomap.js from micello.com -->
+    <script  type="text/javascript"  src="http://maps.micello.com/webmap/v0/micellomap.js"></script>    
+    <script  type="text/javascript"  src="main.js"></script>
+    <!-- Style the map container -- this is a full screen example -->
+    <style type='text/css'>
+        html {width:100%; height:100%; margin:0px;}
+        body {width:100%; height:100%; margin:0px;}
+        #mapElement { /* STYLE YOUR MAP */
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <!-- initializing the maps -->  
+    <script type='text/javascript'>
+        
+        var gateIDs = ["","6656282","6656279","6656781","6656778","6656775","6656273","6656270","6656267","6656292","6656289","6656264","6656261","6656258","6656255","6656252","6656250","6656564","6656561","6656558","6656555","6656552","6656549","6656546","6656543","6656540","6656537","6656534","6656531"]; //all 28 gate IDs for SJC
+        var apikey = "b6b73416-8094-48f9-80bd-35ad11cee059";
+        var mapControl;
+        var mapDataObject;
+        var mapCanvas;
+        var flightData;
+        var id;
+        var flightInfo = new Object();
+        var numbers = [];
+        micello.maps.init (apikey, mapInit);
+        function  mapInit() {
+            init();
+            getdetails(); //gets details of flight data 
+            mapControl = new micello.maps.MapControl('mapElement');
+            mapCanvas = mapControl.getMapCanvas(); // get the map canvas
+            mapDataObject = mapControl.getMapData();
+            mapControl.onMapClick = onMapClick;
+            mapDataObject.loadCommunity(144);
+        }
+        function onMapClick (mx, my, clicked) {
+            if (clicked) {
+                clickedId = clicked.id;
+                addMenuItem(clicked);
+            } else { 
+                mapControl.hideInfoWindow();
+            }
+        }
+        function addMenuItem(clicked){
+            var menuItems = new Array();
+            level = mapDataObject.getCurrentLevel();
+            if(clickedId == "617408" || clickedId == "5836173") {
+                if (mapControl.popupFlags) {
+                    mapControl.defaultSelectAction(clicked); // Show default popup
+                }
+            }
+            for(i in retrieveData(i)) {
+                flightData = retrieveData(i);
+                id = flightData[1];
+                numbers[i] = flightData[3];
+                if(clickedId == gateIDs[id]) {
+                    flightInfo[gateIDs[id]] = "<h3>Flight # " + flightData[3] + "<br />Arriving at " + flightData[4] + "<br />Gate #" + flightData[2] + "</h3>" ;
+                    AddToMenu(clicked, level.id, menuItems);
+                }
+            }
+            document.getElementById("logId").value = numbers;
+            // Add menu your custom menu item       
+            if (mapControl.popupFlags && micello.maps.MapControl.SHOW_INFO ) {
+                mapControl.loadInfoCmd(clicked, menuItems);
+            }
+            if (mapControl.popupFlags && micello.maps.MapControl.SHOW_INSIDE) {     // remove this if you want to hide go inside link
+                mapControl.loadInsideCmd(clicked, menuItems);
+            }
+            if (mapControl.popupFlags && micello.maps.MapControl.SHOW_NAV) {        // shows navigate to and navigate from
+                mapControl.loadNavCmd(clicked, level.id, menuItems);
+            }
+            mapControl.showPopupMenu(clicked, clicked.nm, menuItems);
+        }
+        var flights = { name: "Flight information",
+            func: function() {
+                mapControl.hideInfoWindow();
+                html = flightInfo[clickedId];
+                var geomId = clickedId; //geometry id of clicked geometry
+                mapControl.showInfoWindow(mapDataObject.geomMap[geomId].g, html);
+            }
+        }
+        function AddToMenu (clicked, levelId, menuItems) {
+            var i;
+            if(clicked.id && clickedId == gateIDs[id]) {    
+                menuItems.push(flights);              
+            }
+        };
+        
+    </script>
+</head>
+  <body  onload="init()">
+   <table>
+   <tr>
+        <td>Flight Numbers: </td>
+        <td><input type="text" id="logId" size="25" /> </td>
+        <td>Enter Flight Number :  </td>
+        <td><input type="text" id="airportid" size="5"/>  <input type="button" value="Get Details" onclick="getinfo()"/>
+   <tr>
+   <tr>
+        <td>Arrival City: </td>
+        <td><input type="text" name="arrival" readonly="true" id="arrival" size="5"/> &nbsp; Terminal : <input type="text" readonly="true" id="hello" size="5"/> </td>
+        <td>Departure Gate: </td>
+        <td><input type="text" readonly="true" id="departure" size="5"/> Arrival Gate: <input type="text" readonly="true" id="terminal" size="5"/> </td>
+   </tr>
+   </table>
+<div id='mapElement'></div>
+</body>
+</HTML>
